@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SoftDelete.Models;
-using System.Collections.Generic;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SoftDelete.Data
 {
@@ -14,6 +16,31 @@ namespace SoftDelete.Data
         {
             modelBuilder.Entity<Product>().HasQueryFilter(x => x.IsDeleted == false);
             base.OnModelCreating(modelBuilder);
+        }
+        public override int SaveChanges()
+        {
+            DeleteToSoftDelete();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            DeleteToSoftDelete();
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        private void DeleteToSoftDelete()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity.GetType() == typeof(Product) && entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.CurrentValues["IsDeleted"] = true;
+                    Guid guid = Guid.NewGuid();
+                    entry.CurrentValues["Title"] = $"{guid}@{entry.CurrentValues["Title"]}";
+                }
+            }
         }
         public DbSet<Product> Products { set; get; }
     }

@@ -57,9 +57,7 @@ namespace SoftDelete
             var prodcut = db.Products.SingleOrDefault(x => x.Id == id);
             if (prodcut != null)
             {
-                Guid guid = Guid.NewGuid();
-                prodcut.IsDeleted = true;
-                prodcut.Title = $"{guid}@{prodcut.Title}";
+                db.Products.Remove(prodcut);
                 db.SaveChanges();
             }
         }

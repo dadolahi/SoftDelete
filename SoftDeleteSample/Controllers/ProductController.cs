@@ -25,10 +25,7 @@ namespace SoftDeleteSample.Controllers
             var prodcut = softDeleteDbContext.Products.SingleOrDefault(x => x.Id == id);
             if (prodcut != null)
             {
-                Guid guid = Guid.NewGuid();
-                prodcut.IsDeleted = true;
-                prodcut.Title = $"{guid}@{prodcut.Title}";
-                softDeleteDbContext.SaveChanges();
+                softDeleteDbContext.Products.Remove(prodcut);
             }
             return RedirectToAction(nameof(Index));
         }
